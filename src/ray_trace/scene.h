@@ -16,14 +16,17 @@
 
 #include "ray_trace/camera.h"
 #include "ray_trace/scene_object.h"
+#include "ray_trace/color.h"
 
 class Scene
 {
 public:
   static constexpr size_t MAX_OBJECTS = 16;
 
-  Scene(const Camera& camera) :
+  Scene(const Camera& camera,
+        const Color&  ambientLight = Color::Black) :
     m_camera(camera),
+    m_ambientLight(ambientLight),
     m_objects{},
     m_objectCount(0)
   {
@@ -36,6 +39,9 @@ public:
   const Camera& camera() const { return m_camera; }
         Camera& camera()       { return m_camera; }
 
+  const Color& ambientLight() const { return m_ambientLight; }
+        Color& ambientLight()       { return m_ambientLight; }
+
   size_t objectCount() const { return m_objectCount; }
 
   SceneObject& operator[](size_t index) { return m_objects[index]; }
@@ -47,6 +53,7 @@ public:
 
 private:
   Camera      m_camera;
+  Color       m_ambientLight;
   // TODO: Turn into dynamic array
   SceneObject m_objects[MAX_OBJECTS];
   size_t      m_objectCount;
