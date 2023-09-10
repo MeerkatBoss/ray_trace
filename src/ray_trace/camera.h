@@ -24,10 +24,10 @@ public:
   Camera(const Camera& other) = default;
   Camera& operator=(const Camera& other) = default;
 
-  const Point& getPosition() const { return m_position; }
-  const Vec&   getForward()  const { return m_forward; }
-  const Vec&   getUp()       const { return m_up; }
-  double       getFovDeg()   const { return m_fov / M_PI * 180; }
+  const Point& position() const { return m_position; }
+  const Vec&   forward()  const { return m_forward; }
+  const Vec&   up()       const { return m_up; }
+  double       fovDeg()   const { return m_fov / M_PI * 180; }
 
   Vec getDirectionAt(double x, double y)
   {
@@ -40,8 +40,8 @@ public:
 
 private:
   static constexpr double default_fov = 2 * M_PI / 3;
-  static const     Vec default_forward;
-  static const     Vec default_up;
+  static const     Vec    default_forward;
+  static const     Vec    default_up;
 
   Point  m_position;
   Vec    m_forward;
