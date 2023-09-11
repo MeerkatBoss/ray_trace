@@ -51,6 +51,13 @@ public:
     return const_cast<Scene*>(this)->operator[](index);
   }
 
+  void addObject(const SceneObject& object)
+  {
+    if (m_objectCount >= MAX_OBJECTS)
+      return;
+    m_objects[m_objectCount++] = object;
+  }
+
 private:
   Camera      m_camera;
   Color       m_ambientLight;
