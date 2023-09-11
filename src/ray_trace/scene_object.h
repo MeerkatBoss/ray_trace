@@ -12,12 +12,12 @@
 #ifndef __RAY_TRACE_SCENE_OBJECT_H
 #define __RAY_TRACE_SCENE_OBJECT_H
 
-#include "ray_trace/vec.h"
 #include "ray_trace/material.h"
+#include "ray_trace/transform.h"
 
 enum class ObjectType
 {
-  None,
+  Empty,
   Sphere,
   Box,
   Plane
@@ -27,23 +27,17 @@ class SceneObject
 {
 public:
   SceneObject() :
-    m_type(ObjectType::None),
-    m_position(0, 0, 0),
-    m_scale(1, 1, 1),
-    m_rotation(0, 0, 1),
-    m_material()
+    m_type(ObjectType::Empty),
+    m_material(),
+    m_transform()
   {
   }
-  SceneObject(ObjectType      type,
-              const Material& material = Material(),
-              const Point&    position = Point(0, 0, 0),
-              const Vec&      scale    = Vec(1, 1, 1),
-              const Vec&      rotation = Vec(0, 0, 1)) :
+  SceneObject(ObjectType       type,
+              const Material&  material = Material(),
+              const Transform& transform = Transform()) :
     m_type(type),
-    m_position(position),
-    m_scale(scale),
-    m_rotation(rotation.normalized()),
-    m_material(material)
+    m_material(material),
+    m_transform(transform)
   {
   }
 
@@ -52,29 +46,19 @@ public:
 
   ~SceneObject() = default;
 
-  ObjectType      type()        const { return m_type; }
-  const Point&    position()    const { return m_position; }
-  const Vec&      scale()       const { return m_scale; }
-  const Vec&      rotation()    const { return m_rotation; }
-  const Material& material()    const { return m_material; }
+  ObjectType       type()      const { return m_type; }
+  const Material&  material()  const { return m_material; }
+        Material&  material()        { return m_material; }
+  const Transform& transform() const { return m_transform; }
+        Transform& transform()       { return m_transform; }
 
-  Point& position() { return m_position; }
-  Vec&   scale()    { return m_scale; }
-
-  void setRotation(const Vec& rotation)
-  {
-    if (!rotation.isZero())
-      m_rotation = rotation.normalized();
-  }
 
   bool isLightSource() const { return m_material.hasGlow(); }
 
 private:
   ObjectType m_type;
-  Point      m_position;
-  Vec        m_scale;
-  Vec        m_rotation;
   Material   m_material;
+  Transform  m_transform;
 };
 
 #endif /* scene_object.h */

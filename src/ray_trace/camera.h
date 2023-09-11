@@ -15,42 +15,46 @@
 #include <cmath>
 
 #include "ray_trace/vec.h"
+#include "ray_trace/transform.h"
 
 class Camera
 {
 public:
-  Camera(const Point& position, const Vec& forward,
-         const Vec& up, double fov_deg);
+  Camera(const Transform& transform, double fov_deg = 120) :
+    m_transform(transform), m_fov(default_fov)
+  {
+    if (0 < fov_deg && fov_deg < 180)
+      m_fov = fov_deg / 180 * M_PI;
+  }
   Camera(const Camera& other) = default;
   Camera& operator=(const Camera& other) = default;
 
-  const Point& position() const { return m_position; }
-  const Vec&   forward()  const { return m_forward; }
-  const Vec&   up()       const { return m_up; }
-  double       fovDeg()   const { return m_fov / M_PI * 180; }
+  double fovDeg() const { return m_fov / M_PI * 180; }
 
-  Vec right() const
+  void setFov(double fov_deg)
   {
-    return Vec::crossProduct(forward(), up()).normalized();
+    if (0 < fov_deg && fov_deg < 180)
+      m_fov = fov_deg / 180 * M_PI;
   }
+
+  const Transform& transform() const { return m_transform; }
+        Transform& transform()       { return m_transform; }
 
   Vec getDirectionAt(double x, double y) const
   {
     double cot = cos(m_fov / 2) / sin(m_fov / 2);
-    return (forward() * cot + right() * x + up() * y).normalized();
+    return (transform().forward() * cot
+          + transform().right()   * x
+          + transform().up()      * y).normalized();
   }
 
   ~Camera() = default;
 
 private:
   static constexpr double default_fov = 2 * M_PI / 3;
-  static const     Vec    default_forward;
-  static const     Vec    default_up;
 
-  Point  m_position;
-  Vec    m_forward;
-  Vec    m_up;
-  double m_fov;
+  Transform m_transform;
+  double    m_fov;
 };
 
 #endif /* camera.h */
