@@ -12,7 +12,7 @@
 #ifndef __RAY_TRACE_COLOR_H
 #define __RAY_TRACE_COLOR_H
 
-#include <cstddef>
+#include <cstdint>
 #include <cmath>
 
 class Color
@@ -32,7 +32,7 @@ public:
   Color& operator=(const Color&) = default;
   ~Color() = default;
 
-  static Color fromRGB(size_t red, size_t green, size_t blue)
+  static Color fromRGB(uint8_t red, uint8_t green, uint8_t blue)
   {
     return Color((double) red   / rgb_max,
                  (double) green / rgb_max,
@@ -44,9 +44,9 @@ public:
     return Color(red, green, blue);
   }
 
-  size_t red()   const { return m_red   * rgb_max; }
-  size_t green() const { return m_green * rgb_max; }
-  size_t blue()  const { return m_blue  * rgb_max; }
+  uint8_t red()   const { return m_red   * rgb_max; }
+  uint8_t green() const { return m_green * rgb_max; }
+  uint8_t blue()  const { return m_blue  * rgb_max; }
 
   double redNormalized()   const { return m_red; }
   double greenNormalized() const { return m_green; }
