@@ -29,11 +29,15 @@ public:
   const Vec&   up()       const { return m_up; }
   double       fovDeg()   const { return m_fov / M_PI * 180; }
 
-  Vec getDirectionAt(double x, double y)
+  Vec right() const
   {
-    Vec left = Vec::crossProduct(m_up, m_forward).normalized();
-    double cot = cos(m_fov) / sin(m_fov);
-    return (m_forward * cot + left * x + m_up * y).normalized();
+    return Vec::crossProduct(forward(), up()).normalized();
+  }
+
+  Vec getDirectionAt(double x, double y) const
+  {
+    double cot = cos(m_fov / 2) / sin(m_fov / 2);
+    return (forward() * cot + right() * x + up() * y).normalized();
   }
 
   ~Camera() = default;
