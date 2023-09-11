@@ -104,7 +104,7 @@ public:
   {
     return vec1.m_x * vec2.m_x
          + vec1.m_y * vec2.m_y
-         + vec1.m_x * vec2.m_z;
+         + vec1.m_z * vec2.m_z;
   }
 
   static Vec crossProduct(const Vec& vec1, const Vec& vec2)
