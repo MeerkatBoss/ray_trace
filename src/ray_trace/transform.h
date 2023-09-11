@@ -19,8 +19,7 @@ class Transform
 {
 public:
   Transform(const Point&  position = Point(0, 0, 0),
-            const Vec&    scale    = Point(1, 1, 1),
-            const Matrix& rotation = Matrix::One)
+            const Vec&    scale    = Point(1, 1, 1), const Matrix& rotation = Matrix::One)
     : m_position(position), m_scale(scale), m_rotation(rotation)
   {
   }
@@ -35,10 +34,10 @@ public:
 
   Vec right()    const { return rotation() * Vec::UNIT_X; }
   Vec left()     const { return -right(); }
-  Vec forward()  const { return rotation() * Vec::UNIT_Y; }
-  Vec backward() const { return -forward(); }
-  Vec up()       const { return rotation() * Vec::UNIT_Z; }
+  Vec up()       const { return rotation() * Vec::UNIT_Y; }
   Vec down()     const { return -up(); }
+  Vec forward()  const { return rotation() * Vec::UNIT_Z; }
+  Vec backward() const { return -forward(); }
 
   void move  (const Vec& translation) { m_position += translation; }
 
@@ -51,7 +50,7 @@ public:
 
   void rotate(const Vec& axis, double angle_deg)
   {
-    m_rotation *= Matrix::fromRotation(axis, angle_deg);
+    m_rotation = Matrix::fromRotation(axis, angle_deg) * m_rotation;
   }
 
   void moveTo (const Vec& target) { m_position  = target; }
