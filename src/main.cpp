@@ -6,28 +6,39 @@
 #include <SFML/Window/VideoMode.hpp>
 
 #include "ray_trace/camera.h"
+#include "ray_trace/color.h"
 #include "ray_trace/material.h"
 #include "ray_trace/renderer.h"
 #include "ray_trace/scene.h"
 #include "ray_trace/scene_object.h"
 #include "ray_trace/transform.h"
 
-const size_t SCREEN_WIDTH  = 720;
-const size_t SCREEN_HEIGHT = 480;
+const size_t SCREEN_WIDTH  = 1600;
+const size_t SCREEN_HEIGHT = 900;
 
 int main()
 {
-  Camera camera(Transform(Vec(0, 0, 0)), 80);
+  Camera camera(Transform(Vec(0, 0, 0)), 120);
   SceneObject sphere(ObjectType::Sphere,
-                     Material(1, Color::Red),
+                     Material(1, Color::Red + Color::White*0.33),
                      Transform(
                        /* position = */ Vec(0, 0, 5),
-                       /* scale    = */ Vec(2, 3, 2)));
+                       /* scale    = */ Vec(2, 2, 3)));
+  sphere.transform().rotate(Vec::UNIT_X, 30);
 
-  // sphere.transform().rotate(Vec::UNIT_Y, 15);
+  SceneObject light1(ObjectType::Sphere,
+                    Material(1, Color::White, Color::White*2),
+                    Transform(Vec(0, 4, 2), Vec(0.25, 0.25, 0.25)));
 
-  Scene scene(camera, Color::White * 1.0);
+  Color blue_light = Color::Blue + 0.5 * Color::White;
+  SceneObject light2(ObjectType::Sphere,
+                    Material(1, blue_light, blue_light),
+                    Transform(Vec(4, 0, 3), Vec(0.25, 0.25, 0.25)));
+
+  Scene scene(camera, Color::White * 0.25);
   scene.addObject(sphere);
+  scene.addObject(light1);
+  scene.addObject(light2);
 
   sf::Texture texture;
   texture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -56,8 +67,8 @@ int main()
 
     double delta_time = clock.restart().asMilliseconds() / 1000.0;
     renderer.renderScene(scene);
-    scene[0].transform().rotate(Vec::UNIT_Z, rotation_speed * delta_time);
-    scene[0].transform().rotate(Vec::UNIT_X, rotation_speed * delta_time);
+    scene[0].transform().rotate(Vec::UNIT_Y, rotation_speed * delta_time);
+    // scene[0].transform().rotate(Vec::UNIT_Z, rotation_speed * delta_time);
 
     window.clear(sf::Color::White);
     window.draw(sprite);
