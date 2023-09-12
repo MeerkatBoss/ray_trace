@@ -5,6 +5,7 @@
 
 #include "ray_trace/material.h"
 #include "ray_trace/matrix.h"
+#include "ray_trace/scene.h"
 #include "ray_trace/scene_object.h"
 #include "ray_trace/transform.h"
 
@@ -127,7 +128,8 @@ private:
   double        m_pixelSize;
 };
 
-static Color rayCast(const Ray& ray, const Scene& scene);
+static Color rayCast(const Ray& ray, const Scene& scene,
+                     size_t max_reflections=0);
 
 struct Pixel
 {
@@ -157,7 +159,7 @@ void Renderer::renderScene(const Scene& scene)
     {
       // Cast ray from render plane
       Ray ray = render_plane.getRayFrom(x, y);
-      Color pixel_color = rayCast(ray, scene);
+      Color pixel_color = rayCast(ray, scene, 1);
 
       // Color pixel with ray color
       pixels[y * texture_width + x] = {
@@ -177,7 +179,8 @@ void Renderer::renderScene(const Scene& scene)
 
 static Color getLighting(const RayHit& hit, const Scene& scene);
 
-static Color rayCast(const Ray& ray, const Scene& scene)
+static Color rayCast(const Ray& ray, const Scene& scene,
+                     size_t max_reflexions)
 {
   Ray cast = ray;
 
@@ -196,14 +199,26 @@ static Color rayCast(const Ray& ray, const Scene& scene)
 
 
   // Apply material to ray
-  const double cosine = fabs(Vec::dotProduct(ray.direction(), hit.normal()));
+  const double dot_product = Vec::dotProduct(ray.direction(), hit.normal());
+  const double cosine = fabs(dot_product);
   const Material& material = hit.object()->material();
 
   // Apply emitted light
   cast.color() += material.glowColor();
 
-  // Get reflected light
+  // Get diffused light
   cast.color() *= cosine * material.diffusion() * material.color();
+
+  // If rendering reflections
+  if (max_reflexions > 0)
+  {
+    // Add reflection
+    Vec ortho = ray.direction() - dot_product*hit.normal();
+    Vec reflected = -ray.direction() + 2*ortho;
+    Ray reflected_cast(hit.point(), reflected);
+    Color reflection = rayCast(reflected_cast, scene, max_reflexions - 1);
+    cast.color() += material.reflectivity() * reflection;
+  }
 
   // Apply ambient light to ray
   cast.color() += scene.ambientLight()*material.color();

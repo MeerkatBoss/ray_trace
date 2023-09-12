@@ -20,7 +20,7 @@ int main()
 {
   Camera camera(Transform(Vec(0, 0, 0)), 120);
   SceneObject sphere(ObjectType::Sphere,
-                     Material(1, Color::Red + Color::White*0.33),
+                     Material(0.95, Color::Red + Color::White*0.33),
                      Transform(
                        /* position = */ Vec(0, 0, 5),
                        /* scale    = */ Vec(2, 2, 3)));
@@ -28,7 +28,7 @@ int main()
 
   SceneObject light1(ObjectType::Sphere,
                     Material(1, Color::White, Color::White*2),
-                    Transform(Vec(0, 4, 2), Vec(0.25, 0.25, 0.25)));
+                    Transform(Vec(0, 4, 1)));
 
   Color blue_light = Color::Blue + 0.5 * Color::White;
   SceneObject light2(ObjectType::Sphere,
