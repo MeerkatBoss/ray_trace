@@ -385,7 +385,31 @@ RayHit Ray::hitBox   () const
 
 RayHit Ray::hitPlane () const
 {
-  // TODO: Render planes
-  return RayHit();
+  // Plane equation:
+  // (n, r) = 0
+  // Ray equation:
+  // r = s + d*t
+  // Intersection equation:
+  //     -(n, s)
+  // t = -------
+  //      (n, d)
+  // In standard position n = (0, 1, 0), therefore:
+  // t = -s.y / d.y
+  
+  if (fabs(direction().m_y) < render_margin)
+  {
+    // Plane parallel to ray, no hit
+    return RayHit();
+  }
+
+  const double t = - source().m_y / direction().m_y;
+  if (t < render_margin)
+  {
+    // No hit
+    return RayHit();
+  }
+
+  const Point hit_point = source() + t*direction();
+  return RayHit(t, hit_point, Vec::UNIT_Y);
 }
 
