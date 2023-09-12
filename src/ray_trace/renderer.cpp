@@ -8,6 +8,8 @@
 #include "ray_trace/scene_object.h"
 #include "ray_trace/transform.h"
 
+constexpr double render_margin=1e-6;
+
 class RayHit
 {
 public:
@@ -15,7 +17,7 @@ public:
 
   RayHit(const RayHit& other) = default;
   RayHit& operator=(const RayHit& other) = default;
-  
+
   double             distance() const { return m_hitDistance; }
   const Point&       point()    const { return m_hitPoint; }
   const Vec&         normal()   const { return m_hitNormal; }
@@ -29,7 +31,7 @@ private:
   Point              m_hitPoint;
   Vec                m_hitNormal;
   const SceneObject* m_hitObject;
-  
+
   RayHit(double       distance         = INFINITY,
          const Point& hit_point        = Vec(0, 0, 0),
          const Vec& hit_normal         = Vec(0, 0, 0),
@@ -66,7 +68,7 @@ public:
 
   const Color& color() const { return m_color; }
         Color& color()       { return m_color; }
-  
+
   RayHit getRayHit(const SceneObject& object);
   RayHit getClosestRayHit(const Scene& scene);
 
@@ -146,7 +148,7 @@ void Renderer::renderScene(const Scene& scene)
   RenderPlane render_plane = RenderPlane(scene.camera(),
                                          texture_width,
                                          texture_height,
-                                         1.0 / texture_height);
+                                         3.0/texture_width);
   // For each row of pixels
   for (size_t y = 0; y < texture_height; ++y)
   {
@@ -173,12 +175,11 @@ void Renderer::renderScene(const Scene& scene)
   delete[] pixels;
 }
 
+static Color getLighting(const RayHit& hit, const Scene& scene);
+
 static Color rayCast(const Ray& ray, const Scene& scene)
 {
   Ray cast = ray;
-
-  // Apply ambient light to ray
-  cast.color() += scene.ambientLight();
 
   // Try to get closest ray hit
   RayHit hit = cast.getClosestRayHit(scene);
@@ -190,13 +191,58 @@ static Color rayCast(const Ray& ray, const Scene& scene)
     return Color::Black;
   }
 
+  // Apply surrounding light
+  cast.color() += getLighting(hit, scene);
+
+
   // Apply material to ray
   const double cosine = fabs(Vec::dotProduct(ray.direction(), hit.normal()));
   const Material& material = hit.object()->material();
 
+  // Apply emitted light
+  cast.color() += material.glowColor();
+
+  // Get reflected light
   cast.color() *= cosine * material.diffusion() * material.color();
 
+  // Apply ambient light to ray
+  cast.color() += scene.ambientLight()*material.color();
+
   return cast.color();
+}
+
+static Color getLighting(const RayHit& hit, const Scene& scene)
+{
+  Color light = Color::Black;
+
+  // For each object in scene
+  for (size_t i = 0; i < scene.objectCount(); ++i)
+  {
+    const SceneObject& object = scene[i];
+    // If object is not light source
+    //    or object is the same as hit->object()
+    if (!object.isLightSource() || &object == hit.object())
+    {
+      // Skip object
+      continue;
+    }
+
+    // Cast ray towards light source
+    Vec direction = (object.transform().position() - hit.point()).normalized();
+    Ray cast(hit.point(), direction);
+    RayHit cast_hit = cast.getClosestRayHit(scene);
+
+    // If hit light source
+    if (cast_hit.object() == &object)
+    {
+      // Add lighting
+      double cosine = fabs(Vec::dotProduct(direction, hit.normal()));
+      light += cosine*object.material().glowColor();
+    }
+  }
+
+  // Return lighting
+  return light;
 }
 
 RayHit Ray::getRayHit(const SceneObject& object)
@@ -230,7 +276,7 @@ RayHit Ray::getRayHit(const SceneObject& object)
   case ObjectType::Box:
     hit = transformed.hitBox();
     break;
-  case ObjectType::Plane:  
+  case ObjectType::Plane:
     hit = transformed.hitPlane();
     break;
 
@@ -300,8 +346,8 @@ RayHit Ray::hitSphere() const
   const double t_1 = (-B_half + D_sqrt) / A;
 
   double t_res = -1;
-  if      (t_0 > 0) t_res = t_0;
-  else if (t_1 > 0) t_res = t_1;
+  if      (t_0 > render_margin) t_res = t_0;
+  else if (t_1 > render_margin) t_res = t_1;
 
   if (t_res < 0)
   {
