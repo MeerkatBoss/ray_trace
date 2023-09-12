@@ -13,14 +13,15 @@
 #include "ray_trace/scene_object.h"
 #include "ray_trace/transform.h"
 
-const size_t SCREEN_WIDTH  = 800;
-const size_t SCREEN_HEIGHT = 500;
+const size_t SCREEN_WIDTH     = 2048;
+const size_t SCREEN_HEIGHT    = 1280;
+const bool   ROTATION_ENABLED = false;
 
 static void populateScene(Scene& scene);
 
 int main()
 {
-  Camera camera(Transform(Vec(0, 0, 0)), 40);
+  Camera camera(Transform(Vec(0, 0, 0)), 30);
   Scene scene(camera,
               Color::White * 0.3,
               DirectedLight(Vec(0, -1, 1), Color::White * 1.5));
@@ -52,14 +53,16 @@ int main()
           window.close();
     }
 
-    double delta_time = clock.restart().asMilliseconds() / 1000.0;
-    scene[0].transform().rotate(Vec::UNIT_Y, rotation_speed * delta_time);
-
     window.clear(sf::Color::White);
     window.draw(sprite);
     window.display();
 
-    renderer.renderScene(scene);
+    if (ROTATION_ENABLED)
+    {
+      double delta_time = clock.restart().asMilliseconds() / 1000.0;
+      scene[0].transform().rotate(Vec::UNIT_Y, rotation_speed * delta_time);
+      renderer.renderScene(scene);
+    }
   }
 
   return 0;
@@ -67,18 +70,25 @@ int main()
 
 static void populateScene(Scene& scene)
 {
-  SceneObject sphere(ObjectType::Sphere,
-                     Material(0.95, Color::Red + Color::White*0.33),
-                     Transform(
-                       /* position = */ Vec(0, 0, 10),
-                       /* scale    = */ Vec(1, 1, 1.3)));
+  SceneObject ellipsoid(ObjectType::Sphere,
+                        Material(0.85, Color::Red + Color::White * 0.33),
+                        Transform(
+                            /* position = */ Vec(0, 0, 10),
+                            /* scale    = */ Vec(0.8, 0.8, 1.5)));
+  ellipsoid.transform().rotate(Vec::UNIT_X, -45);
+  ellipsoid.transform().rotate(Vec::UNIT_Y, -75);
+
   SceneObject mirror(ObjectType::Sphere,
-                     Material(0.4, Color::fromNormalized(0.5, 0.7, 0.6)),
+                     Material(0.3, Color::fromNormalized(0.5, 0.7, 0.6)),
                      Transform(
                        /* position = */ Vec(-2, -1, 11),
                        /* scale    = */ Vec(0.7, 0.7, 0.7)));
-  sphere.transform().rotate(Vec::UNIT_X, 30);
-  sphere.transform().rotate(Vec::UNIT_Y, -60);
+  SceneObject sphere(ObjectType::Sphere,
+                     Material(0.98, Color::fromNormalized(0.8, 0.7, 0.65)),
+                     Transform(
+                       /* position = */ Vec(-0.7, -1.5, 8.5),
+                       /* scale    = */ Vec(0.5, 0.5, 0.5)));
+
   SceneObject floor(ObjectType::Plane,
                     Material(1, Color::White),
                     Transform(Vec(0, -2, 0)));
@@ -97,13 +107,14 @@ static void populateScene(Scene& scene)
                         Transform(Vec(0, 0, 15)));
   back_wall.transform().rotate(Vec::UNIT_X, 90);
 
-  Color blue_light = Color::Blue + 0.5 * Color::White;
+  Color blue_light = Color::Blue*0.7 + 0.5 * Color::White;
   SceneObject light(ObjectType::Sphere,
                     Material(1, blue_light, blue_light),
-                    Transform(Vec(2, -0.5, 8), Vec(0.2, 0.2, 0.2)));
+                    Transform(Vec(1.7, -0.1, 8), Vec(0.2, 0.2, 0.2)));
 
-  scene.addObject(sphere);
+  scene.addObject(ellipsoid);
   scene.addObject(mirror);
+  scene.addObject(sphere);
   scene.addObject(floor);
   scene.addObject(back_wall);
   scene.addObject(left_wall);

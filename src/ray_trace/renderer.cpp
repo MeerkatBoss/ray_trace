@@ -159,7 +159,7 @@ void Renderer::renderScene(const Scene& scene)
     {
       // Cast ray from render plane
       Ray ray = render_plane.getRayFrom(x, y);
-      Color pixel_color = rayCast(ray, scene, 1);
+      Color pixel_color = rayCast(ray, scene, 2);
 
       // Color pixel with ray color
       pixels[y * texture_width + x] = {
@@ -178,6 +178,7 @@ void Renderer::renderScene(const Scene& scene)
 }
 
 static Color getLighting(const RayHit& hit, const Scene& scene);
+static Color getReflex(const RayHit& hit, const Scene& scene);
 
 static Color rayCast(const Ray& ray, const Scene& scene,
                      size_t max_reflexions)
@@ -209,9 +210,17 @@ static Color rayCast(const Ray& ray, const Scene& scene,
     return Color::Black;
   }
 
+  if (hit.object()->isLightSource())
+  {
+    const double cosine = fabs(Vec::dotProduct(hit.normal(), ray.direction()));
+    return hit.object()->material().glowColor() * (1 + cosine);
+  }
+
   // Apply surrounding light
   cast.color() += getLighting(hit, scene);
 
+  // Apply reflex
+  // cast.color() += getReflex(hit, scene);
 
   // Apply material to ray
   const double dot_product = Vec::dotProduct(ray.direction(), hit.normal());
@@ -293,6 +302,46 @@ static Color getLighting(const RayHit& hit, const Scene& scene)
 
   // Return lighting
   return light;
+}
+
+static Color getReflex(const RayHit& hit, const Scene& scene)
+{
+  // TODO: FIX
+  Color reflex = Color::Black;
+
+  // For each object in scene
+  for (size_t i = 0; i < scene.objectCount(); ++i)
+  {
+    const SceneObject& object = scene[i];
+    // If object is the same as hit->object()
+    if (&object == hit.object())
+    {
+      // Skip object
+      continue;
+    }
+
+    // Cast ray towards object
+    Vec direction = (object.transform().position() - hit.point()).normalized();
+    Ray cast(hit.point(), direction);
+    RayHit cast_hit = cast.getClosestRayHit(scene);
+
+    // If hit target
+    if (cast_hit.object() == &object)
+    {
+      // Get object lighting
+      Color light = getLighting(cast_hit, scene);
+
+      // Add diffused light to reflex
+      const double cosine = fabs(Vec::dotProduct(direction, hit.normal()));
+      const double scale = 1.0 / (1.0 + 0.05*hit.distance()*hit.distance());
+      reflex += scale* cosine * object.material().diffusion()
+                  * light * object.material().color();
+
+      // TODO: Add reflected light to reflex
+    }
+  }
+
+  return reflex;
 }
 
 RayHit Ray::getRayHit(const SceneObject& object)
