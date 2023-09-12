@@ -44,9 +44,9 @@ public:
     return Color(red, green, blue);
   }
 
-  uint8_t red()   const { return m_red   * rgb_max; }
-  uint8_t green() const { return m_green * rgb_max; }
-  uint8_t blue()  const { return m_blue  * rgb_max; }
+  uint8_t red()   const { return m_red < 1   ? m_red   * rgb_max : rgb_max; }
+  uint8_t green() const { return m_green < 1 ? m_green * rgb_max : rgb_max; }
+  uint8_t blue()  const { return m_blue < 1  ? m_blue  * rgb_max : rgb_max; }
 
   double redNormalized()   const { return m_red; }
   double greenNormalized() const { return m_green; }
@@ -57,7 +57,6 @@ public:
     m_red   += other.m_red;
     m_green += other.m_green;
     m_blue  += other.m_blue;
-    normalize();
     return *this;
   }
 
@@ -65,8 +64,7 @@ public:
   {
     m_red   *= other.m_red;
     m_green *= other.m_green;
-    m_blue  *= other.m_blue;
-    return *this;
+    m_blue  *= other.m_blue; return *this;
   }
 
   Color& operator*=(double scale)
@@ -100,20 +98,6 @@ private:
     m_green(green),
     m_blue(blue)
   {
-  }
-
-  double maxComponent() const
-  {
-    if (m_red > m_green)
-      return m_red > m_blue ? m_red : m_blue;
-    else
-      return m_green > m_blue ? m_green : m_blue;
-  }
-
-  void normalize()
-  {
-    if (maxComponent() > 1)
-      *this /= maxComponent();
   }
 };
 
