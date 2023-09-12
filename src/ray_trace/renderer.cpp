@@ -190,6 +190,21 @@ static Color rayCast(const Ray& ray, const Scene& scene,
   // If no object hit
   if (!hit.hasHit())
   {
+    // If directed light present
+    if (scene.hasDirectedLight())
+    {
+      const double cosine =
+        Vec::dotProduct(ray.direction(), -scene.directedLight().direction);
+      if (cosine < 0)
+      {
+        // Render background pixel
+        return Color::Black;
+      }
+
+      // Render directed light
+      return scene.directedLight().color * cosine;
+    }
+
     // Render background pixel
     return Color::Black;
   }
@@ -220,8 +235,12 @@ static Color rayCast(const Ray& ray, const Scene& scene,
     cast.color() += material.reflectivity() * reflection;
   }
 
-  // Apply ambient light to ray
-  cast.color() += scene.ambientLight()*material.color();
+  // If ambient light present
+  if (scene.hasAmbientLight())
+  {
+    // Apply ambient light to ray
+    cast.color() += scene.ambientLight()*material.color();
+  }
 
   return cast.color();
 }
@@ -253,6 +272,22 @@ static Color getLighting(const RayHit& hit, const Scene& scene)
       // Add lighting
       double cosine = fabs(Vec::dotProduct(direction, hit.normal()));
       light += cosine*object.material().glowColor();
+    }
+  }
+
+  // If directed light source present
+  if (scene.hasDirectedLight())
+  {
+    const Vec direction = -scene.directedLight().direction;
+    Ray cast(hit.point(), direction);
+    RayHit cast_hit = cast.getClosestRayHit(scene);
+   
+    // If not occluded
+    if (!cast_hit.hasHit())
+    {
+      // Add lighting
+      double cosine = fabs(Vec::dotProduct(direction, hit.normal()));
+      light += cosine*scene.directedLight().color;
     }
   }
 

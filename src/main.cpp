@@ -13,8 +13,8 @@
 #include "ray_trace/scene_object.h"
 #include "ray_trace/transform.h"
 
-const size_t SCREEN_WIDTH  = 800;
-const size_t SCREEN_HEIGHT = 450;
+const size_t SCREEN_WIDTH  = 1600;
+const size_t SCREEN_HEIGHT = 1000;
 
 int main()
 {
@@ -24,27 +24,29 @@ int main()
                      Transform(
                        /* position = */ Vec(0, 0, 10),
                        /* scale    = */ Vec(1, 1, 1.3)));
+  SceneObject mirror(ObjectType::Sphere,
+                     Material(0.4, Color::fromNormalized(0.5, 0.7, 0.6)),
+                     Transform(
+                       /* position = */ Vec(-1.5, -1, 11),
+                       /* scale    = */ Vec(0.5, 0.5, 0.5)));
   sphere.transform().rotate(Vec::UNIT_X, 30);
   sphere.transform().rotate(Vec::UNIT_Y, -60);
   SceneObject plane(ObjectType::Plane,
                     Material(1, Color::White),
                     Transform(Vec(0, -2, 0)));
 
-
-  SceneObject light1(ObjectType::Sphere,
-                    Material(1, Color::White, Color::White*2),
-                    Transform(Vec(0, 10, 8)));
-
   Color blue_light = Color::Blue + 0.5 * Color::White;
-  SceneObject light2(ObjectType::Sphere,
+  SceneObject light(ObjectType::Sphere,
                     Material(1, blue_light, blue_light),
                     Transform(Vec(2, -0.5, 8), Vec(0.1, 0.1, 0.1)));
 
-  Scene scene(camera, Color::White * 0.25);
+  Scene scene(camera,
+              Color::White * 0.25,
+              DirectedLight(Vec(0, -1, 1), Color::White * 2));
   scene.addObject(sphere);
+  scene.addObject(mirror);
   scene.addObject(plane);
-  scene.addObject(light1);
-  scene.addObject(light2);
+  scene.addObject(light);
 
   sf::Texture texture;
   texture.create(SCREEN_WIDTH, SCREEN_HEIGHT);

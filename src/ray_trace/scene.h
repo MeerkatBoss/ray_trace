@@ -18,15 +18,29 @@
 #include "ray_trace/scene_object.h"
 #include "ray_trace/color.h"
 
+struct DirectedLight
+{
+  Vec direction;
+  Color color;
+
+  DirectedLight() : direction(0, 0, 0), color(Color::Black) {}
+  DirectedLight(const Vec& dir, const Color& col = Color::White) :
+    direction(dir.normalized()), color(col)
+  {
+  }
+};
+
 class Scene
 {
 public:
   static constexpr size_t MAX_OBJECTS = 16;
 
-  Scene(const Camera& camera,
-        const Color&  ambientLight = Color::Black) :
+  Scene(const Camera&        camera,
+        const Color&         ambientLight = Color::Black,
+        const DirectedLight& directedLight = DirectedLight()) :
     m_camera(camera),
     m_ambientLight(ambientLight),
+    m_directedLight(directedLight),
     m_objects{},
     m_objectCount(0)
   {
@@ -41,6 +55,16 @@ public:
 
   const Color& ambientLight() const { return m_ambientLight; }
         Color& ambientLight()       { return m_ambientLight; }
+  
+  bool hasAmbientLight() const { return m_ambientLight != Color::Black; }
+
+  const DirectedLight& directedLight() const { return m_directedLight; }
+        DirectedLight& directedLight()       { return m_directedLight; }
+
+  bool hasDirectedLight() const
+  {
+    return m_directedLight.color != Color::Black;
+  }
 
   size_t objectCount() const { return m_objectCount; }
 
@@ -59,11 +83,12 @@ public:
   }
 
 private:
-  Camera      m_camera;
-  Color       m_ambientLight;
+  Camera        m_camera;
+  Color         m_ambientLight;
+  DirectedLight m_directedLight;
   // TODO: Turn into dynamic array
-  SceneObject m_objects[MAX_OBJECTS];
-  size_t      m_objectCount;
+  SceneObject   m_objects[MAX_OBJECTS];
+  size_t        m_objectCount;
 };
 
 #endif /* scene.h */
