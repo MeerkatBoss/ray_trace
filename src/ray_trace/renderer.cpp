@@ -3,6 +3,7 @@
 #include <SFML/Config.hpp>
 #include <cmath>
 
+#include "ray_trace/color.h"
 #include "ray_trace/material.h"
 #include "ray_trace/matrix.h"
 #include "ray_trace/scene.h"
@@ -148,9 +149,9 @@ void Renderer::renderScene(const Scene& scene)
 
   // Create render plane
   RenderPlane render_plane = RenderPlane(scene.camera(),
-                                         texture_width,
-                                         texture_height,
-                                         3.0/texture_width);
+                                         2*texture_width,
+                                         2*texture_height,
+                                         1.5/texture_width);
   // For each row of pixels
   for (size_t y = 0; y < texture_height; ++y)
   {
@@ -158,8 +159,17 @@ void Renderer::renderScene(const Scene& scene)
     for (size_t x = 0; x < texture_width; ++x)
     {
       // Cast ray from render plane
-      Ray ray = render_plane.getRayFrom(x, y);
-      Color pixel_color = rayCast(ray, scene, 2);
+      Color pixel_color = Color::Black;
+      Ray ray = render_plane.getRayFrom(2*x, 2*y);
+      pixel_color += rayCast(ray, scene, 2);
+      ray = render_plane.getRayFrom(2*x, 2*y + 1);
+      pixel_color += rayCast(ray, scene, 2);
+      ray = render_plane.getRayFrom(2*x + 1, 2*y);
+      pixel_color += rayCast(ray, scene, 2);
+      ray = render_plane.getRayFrom(2*x + 1, 2*y + 1);
+      pixel_color += rayCast(ray, scene, 2);
+
+      pixel_color *= 1.0/4;
 
       // Color pixel with ray color
       pixels[y * texture_width + x] = {
@@ -496,4 +506,3 @@ RayHit Ray::hitPlane () const
   const Point hit_point = source() + t*direction();
   return RayHit(t, hit_point, Vec::UNIT_Y);
 }
-
