@@ -439,7 +439,7 @@ RayHit Ray::hitSphere() const
   // B = 2*(s, d)
   // C = (s, s) - 1
   // At^2 + Bt + C = 0
-  const double A = Vec::dotProduct(direction(), direction());
+  const double A = Vec::dotProduct(direction(), direction()); // = 1
   const double B_half = Vec::dotProduct(source(), direction());
   const double C = Vec::dotProduct(source(), source()) - 1;
   const double D_half = B_half*B_half - A*C;
