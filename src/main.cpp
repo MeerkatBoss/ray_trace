@@ -10,8 +10,10 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <cassert>
 #include <cstdio>
 
+#include "controllers/movement_controller.h"
 #include "ray_trace/camera.h"
 #include "ray_trace/color.h"
 #include "ray_trace/material.h"
@@ -24,7 +26,6 @@
 
 const size_t SCREEN_WIDTH     = 2048 / 2;
 const size_t SCREEN_HEIGHT    = 1280 / 2;
-const bool   ROTATION_ENABLED = false;
 
 class DebugController : public Clickable
 {
@@ -47,25 +48,32 @@ int main()
   texture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
   Renderer renderer(texture);
-  renderer.renderScene(scene);
-  texture.copyToImage().saveToFile("render.png");
+  // renderer.renderScene(scene);
+  // texture.copyToImage().saveToFile("render.png");
   sf::Sprite sprite(texture);
 
-  sf::RenderTexture button_texture;
-  button_texture.create(300, 200);
-  button_texture.draw(sf::RectangleShape(sf::Vector2f(300, 200)));
+  sf::Texture left_texture;
+  assert(left_texture.loadFromFile("assets/left.png"));
+  sf::Texture right_texture;
+  assert(right_texture.loadFromFile("assets/right.png"));
 
-  DebugController controller;
-  ClickButton debug_button(controller, button_texture.getTexture());
+  MovementController left_controller(scene[0].transform(), -Vec::UNIT_X*0.1);
+  ClickButton left_button(left_controller, left_texture);
+  left_button.sprite().setPosition(sf::Vector2f(
+                                    SCREEN_WIDTH - 220,
+                                    SCREEN_HEIGHT - 110));
+
+  MovementController right_controller(scene[0].transform(), Vec::UNIT_X*0.1);
+  ClickButton right_button(right_controller, right_texture);
+  right_button.sprite().setPosition(sf::Vector2f(
+                                      SCREEN_WIDTH - 110,
+                                      SCREEN_HEIGHT - 110));
 
   sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
                           "Ray trace");
   window.clear(sf::Color::Black);
   window.display();
 
-  double rotation_speed = 90;
-
-  sf::Clock clock;
   while (window.isOpen())
   {
     sf::Event event;
@@ -74,20 +82,17 @@ int main()
       if (event.type == sf::Event::Closed)
           window.close();
 
-      debug_button.handleEvent(MouseEvent::getMouseEvent(window, event));
+      left_button.handleEvent(MouseEvent::getMouseEvent(window, event));
+      right_button.handleEvent(MouseEvent::getMouseEvent(window, event));
     }
+
+    renderer.renderScene(scene);
 
     window.clear(sf::Color::White);
     window.draw(sprite);
-    window.draw(debug_button.sprite());
+    window.draw(left_button.sprite());
+    window.draw(right_button.sprite());
     window.display();
-
-    if (ROTATION_ENABLED)
-    {
-      double delta_time = clock.restart().asMilliseconds() / 1000.0;
-      scene[0].transform().rotate(Vec::UNIT_Y, rotation_speed * delta_time);
-      renderer.renderScene(scene);
-    }
   }
 
   return 0;
