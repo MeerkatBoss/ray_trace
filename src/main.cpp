@@ -96,13 +96,13 @@ int main()
         default:
           break;
         }
+        sf::Vector2f coords = window.mapPixelToCoords(sf::Vector2i(
+                                                        mouse_button_event.x,
+                                                        mouse_button_event.y));
 
         debug_button.handleEvent(MouseEvent{.type=MouseEvent::Type::Click,
                                             .button = button,
-                                            .position=sf::Vector2f(
-                                                          mouse_button_event.x,
-                                                          mouse_button_event.y)}
-                                );
+                                            .position=coords});
       }
     }
 
