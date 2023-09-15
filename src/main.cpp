@@ -74,36 +74,7 @@ int main()
       if (event.type == sf::Event::Closed)
           window.close();
 
-      if (event.type == sf::Event::MouseButtonPressed)
-      {
-        const sf::Event::MouseButtonEvent& mouse_button_event =
-          event.mouseButton;
-        MouseEvent::Button button = MouseEvent::Button::None;
-        switch (mouse_button_event.button)
-        {
-        case sf::Mouse::Button::Left: 
-          button = MouseEvent::Button::Left; 
-          break;
-        case sf::Mouse::Button::Right: 
-          button = MouseEvent::Button::Right; 
-          break;
-        case sf::Mouse::Button::Middle: 
-          button = MouseEvent::Button::Middle; 
-          break;
-        case sf::Mouse::Button::XButton1: 
-        case sf::Mouse::Button::XButton2: 
-        case sf::Mouse::Button::ButtonCount: 
-        default:
-          break;
-        }
-        sf::Vector2f coords = window.mapPixelToCoords(sf::Vector2i(
-                                                        mouse_button_event.x,
-                                                        mouse_button_event.y));
-
-        debug_button.handleEvent(MouseEvent{.type=MouseEvent::Type::Click,
-                                            .button = button,
-                                            .position=coords});
-      }
+      debug_button.handleEvent(MouseEvent::getMouseEvent(window, event));
     }
 
     window.clear(sf::Color::White);

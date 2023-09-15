@@ -14,10 +14,12 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Window/Event.hpp>
 
 struct MouseEvent
 {
   enum class Type {
+    None,
     Hover,
     Click,
     Hold,
@@ -34,6 +36,9 @@ struct MouseEvent
   Type type;
   Button button;
   sf::Vector2f position;
+
+  static MouseEvent getMouseEvent(const sf::RenderWindow& sfml_window,
+                                  const sf::Event&        sfml_event);
 };
 
 class Button

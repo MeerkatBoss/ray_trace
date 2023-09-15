@@ -35,7 +35,7 @@ public:
   {
   }
 
-  void handleEvent(const MouseEvent& event) override;
+  virtual void handleEvent(const MouseEvent& event) override;
 
 private:
   Clickable& m_controller;
